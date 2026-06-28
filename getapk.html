@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>下载芙光 APK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,sans-serif;background:#060B14;color:#fff}
+.card{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
+h1{font-size:24px;background:linear-gradient(135deg,#00D4FF,#7B2FFF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+.loader{width:40px;height:40px;border:3px solid rgba(0,212,255,.2);border-top-color:#00D4FF;border-radius:50%;animation:spin 1s linear infinite;margin:20px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+p{font-size:13px;color:rgba(255,255,255,.5);margin:8px 0}
+a{display:inline-block;background:linear-gradient(135deg,#00D4FF,#7B2FFF);border-radius:28px;padding:14px 32px;font-size:16px;font-weight:600;color:#fff;text-decoration:none;cursor:pointer;margin:10px}
+a:active{transform:scale(.96)}
+#err{color:#FF4757;font-size:12px;margin-top:8px;display:none}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>✦ 芙光 APK</h1>
+  <p id="msg">正在准备下载...</p>
+  <div class="loader" id="spin"></div>
+  <a id="manual" href="/fuguang.apk" download="fuguang.apk" style="display:none">📱 点此手动下载</a>
+  <p id="err"></p>
+</div>
+<script>
+(async () => {
+  const msg = document.getElementById('msg');
+  const spin = document.getElementById('spin');
+  const manual = document.getElementById('manual');
+  const err = document.getElementById('err');
+
+  try {
+    msg.textContent = '正在获取安装包...';
+    const resp = await fetch('/fuguang.apk', {cache: 'no-cache'});
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+
+    const buf = await resp.arrayBuffer();
+    const blob = new Blob([buf], {type: 'application/vnd.android.package-archive'});
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'fuguang.apk';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 1000);
+
+    msg.textContent = '✅ 下载已开始';
+    spin.style.display = 'none';
+    manual.style.display = 'inline-block';
+  } catch (e) {
+    msg.textContent = '自动下载失败';
+    spin.style.display = 'none';
+    manual.style.display = 'inline-block';
+    err.style.display = 'block';
+    err.textContent = e.message;
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>下载芙光 APK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,sans-serif;background:#060B14;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.card{background:linear-gradient(135deg,rgba(0,212,255,.08),rgba(123,47,255,.08));border:1px solid rgba(0,212,255,.2);border-radius:24px;padding:40px 28px;max-width:400px;width:100%;text-align:center}
+h1{font-size:28px;font-weight:700;background:linear-gradient(135deg,#00D4FF,#7B2FFF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+p{color:rgba(255,255,255,.6);font-size:14px;margin-bottom:32px}
+.btn{display:block;width:100%;background:linear-gradient(135deg,#00D4FF,#7B2FFF);border:none;border-radius:28px;padding:16px;font-size:18px;font-weight:600;color:#fff;cursor:pointer;text-decoration:none;margin-bottom:16px;transition:transform .2s}
+.btn:active{transform:scale(.96)}
+.btn:disabled{opacity:.5;transform:none}
+.info{font-size:12px;color:rgba(255,255,255,.3);margin-top:24px;line-height:1.6}
+#status{margin-top:12px;font-size:13px;min-height:20px}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>✦ 芙光</h1>
+  <p>记录你的每一束光</p>
+  <button class="btn" id="dlBtn" onclick="downloadApk()">📱 下载芙光 APK</button>
+  <p style="font-size:12px;color:rgba(255,255,255,.4)">版本 2.0 · 约 3MB</p>
+  <div id="status"></div>
+  <div class="info">点击上方按钮开始下载</div>
+</div>
+<script>
+async function downloadApk() {
+  const btn = document.getElementById('dlBtn');
+  const status = document.getElementById('status');
+  btn.disabled = true;
+  btn.textContent = '正在准备...';
+  status.textContent = '';
+  
+  try {
+    const resp = await fetch('./fuguang.apk');
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    
+    const total = parseInt(resp.headers.get('content-length') || '0');
+    const reader = resp.body.getReader();
+    const chunks = [];
+    let loaded = 0;
+    
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      loaded += value.length;
+      if (total) {
+        const pct = Math.round(loaded / total * 100);
+        btn.textContent = '下载中... ' + pct + '%';
+      }
+    }
+    
+    const blob = new Blob(chunks, {type: 'application/vnd.android.package-archive'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'fuguang.apk';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    btn.textContent = '✅ 下载完成';
+    status.textContent = '安装包已保存，请在下载记录中打开安装';
+    status.style.color = '#00D4FF';
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = '📱 重新下载';
+    status.textContent = '下载失败: ' + e.message + '，请重试';
+    status.style.color = '#FF4757';
+  }
+}
+</script>
+</body>
+</html>
